@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
+import org.jsoup.Jsoup;
 
 /**
  *
@@ -84,11 +85,11 @@ public class GUI extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Time", "Player", "Faction", "Message"
+                "Time", "Player", "Faction", "Type", "Where", "Content"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -196,23 +197,34 @@ for(int i=0;i<=messages.length-1;i++){
     // woop = woop + wrk[1]+"\n";
     
 }
+  String type= "";
   String msg= "";
+  String where = "";
   String agent = wrk[1].split("</")[0].replace(": ", "");
   String message = wrk[1];
+  String parse = Jsoup.parse(message).text();
   if(message.contains("linked")){
-      msg = "link";
-  }else if(message.contains("Field")){
-      msg="field";
+      type = "link";
+      where=parse.replace(agent+" linked ", "");
+  }else if(message.contains("created a Control Field")){
+      type="field";
   }else if (message.contains("captured")){
-      msg = "capture";
-  }else if (message.contains("deployed")){
-      msg="deployeo";
-  }else if(message.contains("destroyed")){
-      msg="ataque";
+      type = "capture";
+  }else if (message.contains("deployed a Resonator on")){
+      type="deployeo";
+  }else if(message.contains("destroyed a Resonator on")){
+      type="reso destruido";
+  }else if (message.contains("destroyed the Link")){
+      type="link destruido";
+  }else if (message.contains("destroyed a Control Field")){
+      type="campo destruido";
   }else {
-      msg = "mensaje= "+message;
+      
+      type="message";
+      msg =parse;
   }
-  model.addRow(new Object[]{time,agent,faction, msg});
+  model.addRow(new Object[]{time,agent,faction, type,where, msg});
+  woop=woop+type+"procesado: "+parse+" bruto: "+message+ "\n";
 }
 try {
     try (PrintWriter out = new PrintWriter("prueba.txt")) {
